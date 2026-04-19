@@ -1,0 +1,21 @@
+<h2>Students</h2>
+
+<div id="studentsList"></div>
+
+<script src="../js/api.js"></script>
+
+<script>
+    async function loadStudents() {
+        const students = await apiRequest("/students");
+
+        let html = "";
+
+        students.forEach(s => {
+            html += `<p>${s.name} - ${s.class}</p>`;
+        });
+
+        document.getElementById("studentsList").innerHTML = html;
+    }
+
+    loadStudents();
+</script>
