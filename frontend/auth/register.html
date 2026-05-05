@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Login - SchoolFlow SaaS</title>
+    <title>Register - SchoolFlow SaaS</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -21,7 +21,7 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            width: 340px;
+            width: 360px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
         
@@ -31,7 +31,8 @@
             margin-bottom: 20px;
         }
         
-        input {
+        input,
+        select {
             width: 100%;
             padding: 10px;
             margin: 8px 0;
@@ -40,14 +41,15 @@
             outline: none;
         }
         
-        input:focus {
+        input:focus,
+        select:focus {
             border-color: #2563eb;
         }
         
         button {
             width: 100%;
             padding: 10px;
-            background: #2563eb;
+            background: #22c55e;
             color: white;
             border: none;
             border-radius: 6px;
@@ -56,7 +58,7 @@
         }
         
         button:hover {
-            background: #1e40af;
+            background: #16a34a;
         }
         
         .link {
@@ -76,74 +78,79 @@
 <body>
 
     <div class="card">
-        <h2>SchoolFlow Login</h2>
+        <h2>Register SchoolFlow</h2>
 
-        <form id="loginForm">
+        <form id="registerForm">
+            <input type="text" id="name" placeholder="Full Name" required />
             <input type="email" id="email" placeholder="Email" required />
             <input type="password" id="password" placeholder="Password" required />
-            <button type="submit">Login</button>
+
+            <select id="role">
+                <option value="admin">Admin</option>
+                <option value="teacher">Teacher</option>
+                <option value="parent">Parent</option>
+            </select>
+
+            <button type="submit">Register</button>
         </form>
 
         <p class="error" id="error"></p>
 
         <div class="link">
-            <a href="../landing.html">Back to Home</a>
+            <a href="login.html">Already have an account? Login</a>
         </div>
     </div>
 
     <script>
-        const form = document.getElementById("loginForm");
+        const form = document.getElementById("registerForm");
         const errorEl = document.getElementById("error");
 
-        function redirectByRole(role) {
-            if (role === "admin") {
-                window.location.href = "../admin/dashboard.html";
-            } else if (role === "teacher") {
-                window.location.href = "../teacher/dashboard.html";
-            } else {
-                window.location.href = "../parent/dashboard.html";
-            }
-        }
+        const API_BASE = "http://localhost:5000/api";
 
         form.addEventListener("submit", async(e) => {
             e.preventDefault();
             errorEl.textContent = "";
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const role = document.getElementById("role").value;
 
             try {
-                const res = await fetch("http://localhost:5000/api/auth/login", {
+                const res = await fetch(`${API_BASE}/auth/register`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
+                        name,
                         email,
-                        password
+                        password,
+                        role,
+                        schoolName: name
                     })
                 });
 
-                const data = await res.json();
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    data = {};
+                }
 
                 if (!res.ok) {
-                    errorEl.textContent = data.message || "Login failed";
+                    errorEl.textContent = data && data.message ? data.message : "Registration failed";
                     return;
                 }
 
-                const token = data.token || data.accessToken;
+                alert("Account created successfully");
 
-                if (!token || !data.user) {
-                    errorEl.textContent = "Invalid server response";
-                    return;
-                }
+                window.location.href = "login.html";
 
-                // ================= SAAS SAFE STORAGE =================
-                localStorage.setItem("token", token);
+                localStorage.setItem("token", data.accessToken);
                 localStorage.setItem("user", JSON.stringify(data.user));
 
-                // ================= ROLE ROUTING =================
-                redirectByRole(data.user.role);
+                window.location.href = "../admin/dashboard.html";
 
             } catch (err) {
                 console.error(err);

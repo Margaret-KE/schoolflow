@@ -1,23 +1,272 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <title>Admin Dashboard - SchoolFlow SaaS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f6f9;
+        }
+        
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        
+        .logout {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .charts {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        canvas {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 
 <body>
 
     <div class="header">
-        <h1>Admin Dashboard</h1>
+        <div>
+            <strong>SchoolFlow Admin</strong>
+            <span class="nav">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="students.html">Students</a>
+                <a href="payments.html">Payments</a>
+            </span>
+        </div>
+
+        <button class="logout" onclick="logout()">Logout</button>
     </div>
 
     <div class="container">
+
         <div id="stats" class="stats"></div>
+
+        <div class="charts">
+            <canvas id="genderChart"></canvas>
+            <canvas id="classChart"></canvas>
+            <canvas id="attendanceChart"></canvas>
+            <canvas id="revenueChart"></canvas>
+        </div>
+
     </div>
 
-    <script src="../js/api.js"></script>
-    <script src="../js/dashboard.js"></script>
+    <script>
+        const token = localStorage.getItem("token");
+        const API_BASE = "http://localhost:5000/api";
+
+        if (!token) window.location.href = "../auth/login.html";
+
+        let charts = {};
+
+        // ================= SBSCRIPTION =================
+        const res = await fetch("http://localhost:5000/api/subscriptions", {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        });
+
+        const sub = await res.json();
+
+        if (sub.status !== "active") {
+            window.location.href = "../admin/subscription.html";
+        }
+
+        // ================= SAFE FETCH =================
+        async function api(url) {
+            try {
+                const res = await fetch(API_BASE + url, {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    data = {};
+                }
+
+                if (!res.ok) {
+                    throw new Error(data && data.message ? data.message : "Request failed");
+                }
+
+                return data;
+
+            } catch (err) {
+                console.error(err);
+                alert(err.message || "Server error");
+                return {};
+            }
+        }
+
+        // ================= LOAD DASHBOARD =================
+        async function loadDashboard() {
+            const data = await api("/dashboards");
+
+            document.getElementById("stats").innerHTML = `
+                <div class="card"><h2>${data.totalStudents || 0}</h2><p>Students</p></div>
+                <div class="card"><h2>${data.totalParents || 0}</h2><p>Parents</p></div>
+                <div class="card"><h2>${data.totalTeachers || 0}</h2><p>Teachers</p></div>
+                <div class="card"><h2>KES ${data.totalRevenue || 0}</h2><p>Revenue</p></div>
+            `;
+
+            const students = await api("/students");
+
+            buildGenderChart(students);
+            buildClassChart(students);
+            buildAttendanceChart(data.attendanceChart);
+            buildRevenueChart(data.revenueChart);
+        }
+
+        // ================= DESTROY =================
+        function destroy(id) {
+            if (charts[id]) {
+                charts[id].destroy();
+            }
+        }
+
+        // ================= CHARTS =================
+        function buildGenderChart(students) {
+            destroy("gender");
+
+            let male = 0;
+            let female = 0;
+
+            if (Array.isArray(students)) {
+                students.forEach(function(s) {
+                    if (s.gender === "male") male++;
+                    if (s.gender === "female") female++;
+                });
+            }
+
+            charts.gender = new Chart(document.getElementById("genderChart"), {
+                type: "pie",
+                data: {
+                    labels: ["Male", "Female"],
+                    datasets: [{
+                        data: [male, female]
+                    }]
+                }
+            });
+        }
+
+        function buildClassChart(students) {
+            destroy("class");
+
+            const map = {};
+
+            if (Array.isArray(students)) {
+                students.forEach(function(s) {
+                    const c = s.student_class || "Unknown";
+                    map[c] = (map[c] || 0) + 1;
+                });
+            }
+
+            charts.class = new Chart(document.getElementById("classChart"), {
+                type: "bar",
+                data: {
+                    labels: Object.keys(map),
+                    datasets: [{
+                        label: "Students",
+                        data: Object.values(map)
+                    }]
+                }
+            });
+        }
+
+        function buildAttendanceChart(att) {
+            destroy("attendance");
+
+            const present = (att && att.present) ? att.present : 0;
+            const absent = (att && att.absent) ? att.absent : 0;
+
+            charts.attendance = new Chart(document.getElementById("attendanceChart"), {
+                type: "pie",
+                data: {
+                    labels: ["Present", "Absent"],
+                    datasets: [{
+                        data: [present, absent]
+                    }]
+                }
+            });
+        }
+
+        function buildRevenueChart(rev) {
+            destroy("revenue");
+
+            const labels = (rev && rev.labels) ? rev.labels : [];
+            const values = (rev && rev.data) ? rev.data : [];
+
+            charts.revenue = new Chart(document.getElementById("revenueChart"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Revenue",
+                        data: values
+                    }]
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "../auth/login.html";
+        }
+
+        loadDashboard();
+    </script>
 
 </body>
 

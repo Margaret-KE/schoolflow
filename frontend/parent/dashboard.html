@@ -1,21 +1,121 @@
-<h2>My Children</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<div id="children"></div>
+<head>
+    <title>Parent Dashboard - SchoolFlow SaaS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="../js/api.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f4f6f9;
+        }
+        
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 15px;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
 
-<script>
-    async function loadChildren() {
-        const children = await apiRequest("/students/my-children");
+<body>
 
-        let html = "";
+    <div class="header">
+        <h2>Parent Dashboard</h2>
+    </div>
 
-        children.forEach(c => {
-            html += `<p>${c.name} - ${c.class}</p>`;
-        });
+    <div class="container">
 
-        document.getElementById("children").innerHTML = html;
-    }
+        <div class="card">
+            <h3>My Children</h3>
+            <div id="children"></div>
+        </div>
 
-    loadChildren();
-</script>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        const API_BASE = "http://localhost:5000/api";
+
+        if (!token) {
+            window.location.href = "../auth/login.html";
+        }
+
+        // ================= SAFE API =================
+        async function apiRequest(url) {
+            try {
+                const res = await fetch(API_BASE + url, {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                });
+
+                let data = [];
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    data = [];
+                }
+
+                if (!res.ok) {
+                    throw new Error(data && data.message ? data.message : "Request failed");
+                }
+
+                return data;
+
+            } catch (err) {
+                console.error(err);
+                return [];
+            }
+        }
+
+        // ================= LOAD CHILDREN =================
+        async function loadChildren() {
+            const children = await apiRequest("/students/my-children");
+
+            const container = document.getElementById("children");
+
+            if (!Array.isArray(children) || children.length === 0) {
+                container.innerHTML = "<p>No children found</p>";
+                return;
+            }
+
+            let html = "";
+
+            children.forEach(function(c) {
+                const studentClass = c.student_class || c.className || "N/A";
+                const gender = c.gender || "N/A";
+
+                html += `
+                    <div class="card">
+                        <h4>${c.name}</h4>
+                        <p>Class: ${studentClass}</p>
+                        <p>Gender: ${gender}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        loadChildren();
+    </script>
+
+</body>
+
+</html>

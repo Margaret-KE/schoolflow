@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Subscription</title>
+</head>
+
+<body>
+
+    <h2>Upgrade Subscription</h2>
+
+    <input id="phone" placeholder="2547XXXXXXXX">
+    <input id="amount" value="2000">
+
+    <button onclick="pay()">Pay via MPESA</button>
+
+    <script>
+        const token = localStorage.getItem("token");
+
+        async function pay() {
+            await fetch("http://localhost:5000/api/mpesa/subscription/pay", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({
+                    phone: phone.value,
+                    amount: amount.value
+                })
+            });
+
+            alert("Check your phone to complete payment");
+        }
+    </script>
+
+</body>
+
+</html>

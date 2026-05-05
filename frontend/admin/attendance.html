@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Attendance - SchoolFlow SaaS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f4f6f9;
+        }
+        
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 15px;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        input,
+        select,
+        button {
+            padding: 8px;
+            margin: 5px;
+        }
+        
+        button {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            background: #2563eb;
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th,
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background: #1e293b;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h2>Attendance Management</h2>
+    </div>
+
+    <div class="container">
+
+        <!-- MARK ATTENDANCE -->
+        <div class="card">
+            <h3>Mark Attendance</h3>
+
+            <select id="student"></select>
+            <input type="date" id="date">
+            <select id="status">
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+            </select>
+
+            <button class="btn" onclick="mark()">Save</button>
+        </div>
+
+        <!-- RECORDS -->
+        <div class="card">
+            <h3>Attendance Records</h3>
+            <button class="btn" onclick="load()">Load</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="table"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        const API_BASE = "http://localhost:5000/api";
+
+        if (!token) window.location.href = "../auth/login.html";
+
+        // ================= SAFE FETCH =================
+        async function api(url, method = "GET", body = null) {
+            try {
+                const res = await fetch(API_BASE + url, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: body ? JSON.stringify(body) : null
+                });
+
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    data = {};
+                }
+
+                if (!res.ok) {
+                    throw new Error(data && data.message ? data.message : "Request failed");
+                }
+
+                return data;
+
+            } catch (err) {
+                console.error(err);
+                alert(err.message || "Server error");
+                return [];
+            }
+        }
+
+        // ================= STUDENTS =================
+        async function loadStudents() {
+            const data = await api("/students");
+
+            const sel = document.getElementById("student");
+            sel.innerHTML = "";
+
+            if (!Array.isArray(data)) return;
+
+            data.forEach(function(s) {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
+
+        // ================= MARK =================
+        async function mark() {
+            const studentEl = document.getElementById("student");
+            const dateEl = document.getElementById("date");
+            const statusEl = document.getElementById("status");
+
+            if (!studentEl.value || !dateEl.value) {
+                alert("Fill all fields");
+                return;
+            }
+
+            await api("/attendance", "POST", {
+                student_id: studentEl.value,
+                date: dateEl.value,
+                status: statusEl.value
+            });
+
+            alert("Saved");
+        }
+
+        // ================= LOAD =================
+        async function load() {
+            const data = await api("/attendance");
+
+            const table = document.getElementById("table");
+            table.innerHTML = "";
+
+            if (!Array.isArray(data)) return;
+
+            data.forEach(function(a) {
+                let studentName = "-";
+
+                if (a.Student && a.Student.name) {
+                    studentName = a.Student.name;
+                } else if (a.student && a.student.name) {
+                    studentName = a.student.name;
+                } else if (a.studentName) {
+                    studentName = a.studentName;
+                }
+
+                table.innerHTML += `
+                    <tr>
+                        <td>${studentName}</td>
+                        <td>${a.date || "-"}</td>
+                        <td>${a.status || "-"}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // INIT
+        loadStudents();
+    </script>
+
+</body>
+
+</html>

@@ -1,21 +1,376 @@
-<h2>Students</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<div id="studentsList"></div>
+<head>
+    <title>Students - SchoolFlow SaaS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="../js/api.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            margin: 0;
+        }
+        
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        input,
+        select,
+        button {
+            padding: 8px;
+            margin: 5px;
+        }
+        
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+        }
+        
+        .add-btn {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .pay-btn {
+            background: #16a34a;
+            color: white;
+        }
+        
+        .edit-btn {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th,
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background: #1e293b;
+            color: white;
+        }
+        
+        .logout {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
 
-<script>
-    async function loadStudents() {
-        const students = await apiRequest("/students");
+<body>
 
-        let html = "";
+    <div class="header">
+        <h2>Students Management</h2>
+        <button class="logout" onclick="logout()">Logout</button>
+    </div>
 
-        students.forEach(s => {
-            html += `<p>${s.name} - ${s.class}</p>`;
-        });
+    <div class="container">
 
-        document.getElementById("studentsList").innerHTML = html;
-    }
+        <!-- FILTER -->
+        <div class="card">
+            <input type="text" id="search" placeholder="Search..." onkeyup="applyFilters()">
+            <input type="text" id="classFilter" placeholder="Class..." onkeyup="applyFilters()">
 
-    loadStudents();
-</script>
+            <select id="genderFilter" onchange="applyFilters()">
+                <option value="">All Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+
+        <!-- STUDENT FORM -->
+        <div class="card">
+            <h3>Add / Edit Student</h3>
+
+            <input type="text" id="name" placeholder="Name">
+            <input type="text" id="studentClass" placeholder="Class">
+
+            <select id="parentSelect">
+                <option value="">Parent (optional)</option>
+            </select>
+
+            <select id="gender">
+                <option value="">Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <button class="add-btn" onclick="addStudent()">Save</button>
+        </div>
+
+        <!-- MPESA -->
+        <div class="card">
+            <h3>MPESA Payment</h3>
+
+            <select id="studentSelect"></select>
+            <input type="text" id="phone" placeholder="2547XXXXXXXX">
+            <input type="number" id="amount" placeholder="Amount">
+
+            <button class="pay-btn" onclick="payFees()">Send STK</button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Gender</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTable"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        const API_BASE = "http://localhost:5000/api";
+
+        if (!token) window.location.href = "../auth/login.html";
+
+        let allStudents = [];
+        let filtered = [];
+        let editingId = null;
+
+        // ================= SAFE FETCH =================
+        async function api(url, method = "GET", body = null) {
+            try {
+                const res = await fetch(API_BASE + url, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: body ? JSON.stringify(body) : null
+                });
+
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    data = {};
+                }
+
+                if (!res.ok) {
+                    throw new Error(data && data.message ? data.message : "Request failed");
+                }
+
+                return data;
+
+            } catch (err) {
+                console.error(err);
+                alert(err.message || "Server error");
+                return [];
+            }
+        }
+
+        // ================= LOAD =================
+        async function loadStudents() {
+            const data = await api("/students");
+
+            if (!Array.isArray(data)) return;
+
+            allStudents = data;
+            applyFilters();
+
+            const sel = document.getElementById("studentSelect");
+            sel.innerHTML = "";
+
+            allStudents.forEach(function(s) {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
+
+        // ================= PARENTS =================
+        async function loadParents() {
+            const data = await api("/parents");
+
+            const sel = document.getElementById("parentSelect");
+            sel.innerHTML = `<option value="">Parent</option>`;
+
+            if (!Array.isArray(data)) return;
+
+            data.forEach(function(p) {
+                let parentName = "Parent";
+
+                if (p.User && p.User.name) {
+                    parentName = p.User.name;
+                } else if (p.user && p.user.name) {
+                    parentName = p.user.name;
+                } else if (p.name) {
+                    parentName = p.name;
+                }
+
+                sel.innerHTML += `<option value="${p.id}">${parentName}</option>`;
+            });
+        }
+
+        // ================= FILTER =================
+        function applyFilters() {
+            const search = document.getElementById("search").value.toLowerCase();
+            const cls = document.getElementById("classFilter").value.toLowerCase();
+            const gender = document.getElementById("genderFilter").value;
+
+            filtered = allStudents.filter(function(s) {
+                const name = (s.name || "").toLowerCase();
+                const studentClass = (s.student_class || "").toLowerCase();
+
+                return (
+                    (!search || name.includes(search)) &&
+                    (!cls || studentClass.includes(cls)) &&
+                    (!gender || s.gender === gender)
+                );
+            });
+
+            render();
+        }
+
+        // ================= RENDER =================
+        function render() {
+            const table = document.getElementById("studentTable");
+            table.innerHTML = "";
+
+            filtered.forEach(function(s) {
+                const studentClass = s.student_class || "";
+                const gender = s.gender || "";
+
+                table.innerHTML += `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td>${studentClass || "-"}</td>
+                        <td>${gender || "-"}</td>
+                        <td>
+                            <button class="edit-btn" onclick="edit('${s.id}','${s.name}','${studentClass}','${gender}')">Edit</button>
+                            <button class="delete-btn" onclick="del('${s.id}')">Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // ================= CREATE / UPDATE =================
+        async function addStudent() {
+            const nameEl = document.getElementById("name");
+            const classEl = document.getElementById("studentClass");
+            const genderEl = document.getElementById("gender");
+            const parentEl = document.getElementById("parentSelect");
+
+            if (!nameEl.value) {
+                alert("Name required");
+                return;
+            }
+
+            const body = {
+                name: nameEl.value,
+                className: classEl.value,
+                gender: genderEl.value,
+                parent_id: parentEl.value || null
+            };
+
+            let url = "/students";
+            let method = "POST";
+
+            if (editingId) {
+                url = "/students/" + editingId;
+                method = "PUT";
+            }
+
+            await api(url, method, body);
+
+            editingId = null;
+            nameEl.value = "";
+            classEl.value = "";
+            genderEl.value = "";
+            parentEl.value = "";
+
+            loadStudents();
+        }
+
+        // ================= EDIT =================
+        function edit(id, n, c, g) {
+            editingId = id;
+            document.getElementById("name").value = n;
+            document.getElementById("studentClass").value = c || "";
+            document.getElementById("gender").value = g || "";
+        }
+
+        // ================= DELETE =================
+        async function del(id) {
+            if (!confirm("Delete student?")) return;
+
+            await api("/students/" + id, "DELETE");
+            loadStudents();
+        }
+
+        // ================= MPESA =================
+        async function payFees() {
+            const phoneEl = document.getElementById("phone");
+            const amountEl = document.getElementById("amount");
+            const studentEl = document.getElementById("studentSelect");
+
+            if (!phoneEl.value || !amountEl.value) {
+                alert("Fill all payment fields");
+                return;
+            }
+
+            await api("/mpesa/pay", "POST", {
+                phone: phoneEl.value,
+                amount: amountEl.value,
+                student_id: studentEl.value
+            });
+
+            alert("STK Sent");
+        }
+
+        // ================= LOGOUT =================
+        function logout() {
+            localStorage.clear();
+            window.location.href = "../auth/login.html";
+        }
+
+        // INIT
+        loadStudents();
+        loadParents();
+    </script>
+
+</body>
+
+</html>
