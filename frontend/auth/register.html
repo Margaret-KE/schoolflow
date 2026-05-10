@@ -153,8 +153,14 @@
                 window.location.href = "../admin/dashboard.html";
 
             } catch (err) {
-                console.error(err);
-                errorEl.textContent = "Server error. Try again.";
+
+                console.error("REGISTER ERROR:", err);
+
+                if (err && err.message) {
+                    errorEl.textContent = err.message;
+                } else {
+                    errorEl.textContent = "Server error. Try again.";
+                }
             }
         });
     </script>

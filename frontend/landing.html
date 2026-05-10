@@ -27,9 +27,17 @@
         }
         
         .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             font-weight: bold;
             color: #2563eb;
-            font-size: 20px;
+        }
+        
+        .logo img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
         }
         
         nav a {
@@ -89,6 +97,13 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             text-align: center;
             font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            background: #f0f7ff;
         }
         /* ABOUT */
         
@@ -135,8 +150,14 @@
 
 <body>
 
+    <!-- =============================== -->
+    <!-- HEADER -->
+    <!-- =============================== -->
     <header>
-        <div class="logo">🏫 SchoolFlow SaaS</div>
+        <div class="logo">
+            <img src="./assets/logo.png" alt="Logo">
+            <span>SchoolFlow</span>
+        </div>
 
         <nav>
             <a href="#services">Services</a>
@@ -146,31 +167,56 @@
         </nav>
     </header>
 
+    <!-- =============================== -->
     <!-- HERO -->
+    <!-- =============================== -->
     <section class="hero">
         <div>
             <h1>Smart School Management SaaS</h1>
             <p>Manage Students, Attendance, Fees (MPESA), Results & Parents in one system.</p>
 
             <button onclick="window.location='auth/register.html'">
-                Get Started
-            </button>
+            Get Started
+        </button>
         </div>
 
         <img src="./assets/hero.png" alt="SchoolFlow Dashboard" />
     </section>
 
-    <!-- SERVICES -->
+    <!-- =============================== -->
+    <!-- SERVICES (CLICKABLE ICONS) -->
+    <!-- =============================== -->
     <section class="services" id="services">
-        <div class="card">📚 Student Management</div>
-        <div class="card">📊 Attendance Tracking</div>
-        <div class="card">💰 MPESA Payments</div>
-        <div class="card">🧾 Results Management</div>
-        <div class="card">👨‍👩‍👧 Parent Portal</div>
-        <div class="card">📈 Analytics Dashboard</div>
+
+        <div class="card" onclick="goToFeature('students')">
+            📚 Student Management
+        </div>
+
+        <div class="card" onclick="goToFeature('attendance')">
+            📊 Attendance Tracking
+        </div>
+
+        <div class="card" onclick="goToFeature('payments')">
+            💰 MPESA Payments
+        </div>
+
+        <div class="card" onclick="goToFeature('results')">
+            🧾 Results Management
+        </div>
+
+        <div class="card" onclick="goToFeature('parents')">
+            👨‍👩‍👧 Parent Portal
+        </div>
+
+        <div class="card" onclick="goToFeature('analytics')">
+            📈 Analytics Dashboard
+        </div>
+
     </section>
 
+    <!-- =============================== -->
     <!-- ABOUT -->
+    <!-- =============================== -->
     <section class="about" id="about">
         <h2>About SchoolFlow</h2>
         <p>
@@ -178,17 +224,72 @@
         </p>
     </section>
 
+    <!-- =============================== -->
     <!-- CONTACT -->
+    <!-- =============================== -->
     <section class="contact" id="contact">
         <h2>Contact Us</h2>
-        <p>Email: support@schoolflow.com</p>
-        <p>Phone: +254 700 000 000</p>
+        <p>Email: wanjirumargaret394@gmail.com</p>
+        <p>Phone: +254 715 848 264</p>
         <p>Location: Nairobi, Kenya</p>
     </section>
 
+    <!-- =============================== -->
+    <!-- FOOTER -->
+    <!-- =============================== -->
     <footer>
-        © 2026 SchoolFlow SaaS. All rights reserved.
+        © 2026 SchoolFlow. All rights reserved.
     </footer>
+
+    <!-- =============================== -->
+    <!-- JAVASCRIPT ROUTER -->
+    <!-- =============================== -->
+    <script>
+        function goToFeature(feature) {
+            const token = localStorage.getItem("token");
+
+            // ===============================
+            // NOT LOGGED IN → LOGIN PAGE
+            // ===============================
+            if (!token) {
+                window.location.href = "auth/login.html";
+                return;
+            }
+
+            // ===============================
+            // ROUTING LOGIC
+            // ===============================
+            switch (feature) {
+
+                case "students":
+                    window.location.href = "admin/students.html";
+                    break;
+
+                case "attendance":
+                    window.location.href = "admin/attendance.html";
+                    break;
+
+                case "payments":
+                    window.location.href = "admin/payments.html";
+                    break;
+
+                case "parents":
+                    window.location.href = "parent/dashboard.html";
+                    break;
+
+                case "results":
+                    window.location.href = "admin/results.html";
+                    break;
+
+                case "analytics":
+                    window.location.href = "admin/dashboard.html";
+                    break;
+
+                default:
+                    alert("Feature coming soon 🚧");
+            }
+        }
+    </script>
 
 </body>
 

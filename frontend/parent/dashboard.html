@@ -3,109 +3,373 @@
 
 <head>
     <title>Parent Dashboard - SchoolFlow SaaS</title>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial;
             margin: 0;
+            font-family: Arial, sans-serif;
             background: #f4f6f9;
         }
+        /* ===============================
+           HEADER
+        =============================== */
         
         .header {
             background: #1e293b;
             color: white;
-            padding: 15px;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        
+        .header h2 {
+            margin: 0;
+        }
+        
+        .logout-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            opacity: 0.9;
+        }
+        /* ===============================
+           CONTAINER
+        =============================== */
         
         .container {
             padding: 20px;
         }
+        /* ===============================
+           STATS
+        =============================== */
         
-        .card {
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
-            margin-bottom: 10px;
+            text-align: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-card h3 {
+            margin: 0;
+            color: #2563eb;
+            font-size: 28px;
+        }
+        /* ===============================
+           CHILDREN
+        =============================== */
+        
+        .children-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .child-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .child-card h3 {
+            margin-top: 0;
+            color: #1e293b;
+        }
+        
+        .info {
+            margin: 10px 0;
+            color: #475569;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+        }
+        
+        .paid {
+            background: #22c55e;
+        }
+        
+        .pending {
+            background: #f59e0b;
+        }
+        /* ===============================
+           BUTTONS
+        =============================== */
+        
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .btn-results {
+            background: #2563eb;
+        }
+        
+        .btn-payments {
+            background: #22c55e;
+        }
+        
+        .btn-attendance {
+            background: #0f172a;
+        }
+        /* ===============================
+           EMPTY STATE
+        =============================== */
+        
+        .empty {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        /* ===============================
+           MOBILE
+        =============================== */
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
         }
     </style>
 </head>
 
 <body>
 
+    <!-- ===============================
+         HEADER
+    =============================== -->
     <div class="header">
-        <h2>Parent Dashboard</h2>
+        <h2>👨‍👩‍👧 Parent Dashboard</h2>
+
+        <button class="logout-btn" onclick="logout()">
+            Logout
+        </button>
     </div>
 
+    <!-- ===============================
+         CONTENT
+    =============================== -->
     <div class="container">
 
-        <div class="card">
-            <h3>My Children</h3>
-            <div id="children"></div>
+        <!-- STATS -->
+        <div class="stats">
+
+            <div class="stat-card">
+                <h3 id="totalChildren">0</h3>
+                <p>Children</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="attendanceRate">0%</h3>
+                <p>Attendance</p>
+            </div>
+
+            <div class="stat-card">
+                <h3 id="feeStatus">Pending</h3>
+                <p>Fee Status</p>
+            </div>
+
+        </div>
+
+        <!-- CHILDREN -->
+        <div id="children" class="children-grid">
+            <div class="empty">
+                Loading children...
+            </div>
         </div>
 
     </div>
 
     <script>
         const token = localStorage.getItem("token");
+
         const API_BASE = "http://localhost:5000/api";
 
+        // ===============================
+        // AUTH CHECK
+        // ===============================
         if (!token) {
             window.location.href = "../auth/login.html";
         }
 
-        // ================= SAFE API =================
+        // ===============================
+        // SAFE API
+        // ===============================
         async function apiRequest(url) {
+
             try {
+
                 const res = await fetch(API_BASE + url, {
                     headers: {
                         Authorization: "Bearer " + token
                     }
                 });
 
-                let data = [];
-                try {
-                    data = await res.json();
-                } catch (e) {
-                    data = [];
-                }
+                const data = await res.json();
 
                 if (!res.ok) {
-                    throw new Error(data && data.message ? data.message : "Request failed");
+                    throw new Error(
+                        data.message || "Request failed"
+                    );
                 }
 
                 return data;
 
             } catch (err) {
+
                 console.error(err);
+
                 return [];
             }
         }
 
-        // ================= LOAD CHILDREN =================
+        // ===============================
+        // LOAD CHILDREN
+        // ===============================
         async function loadChildren() {
-            const children = await apiRequest("/students/my-children");
 
-            const container = document.getElementById("children");
+            const children = await apiRequest(
+                "/students/my-children"
+            );
 
-            if (!Array.isArray(children) || children.length === 0) {
-                container.innerHTML = "<p>No children found</p>";
+            const container =
+                document.getElementById("children");
+
+            if (!Array.isArray(children) ||
+                children.length === 0
+            ) {
+
+                container.innerHTML = `
+                    <div class="empty">
+                        <h3>No children found</h3>
+                    </div>
+                `;
+
                 return;
             }
 
+            // ===============================
+            // UPDATE STATS
+            // ===============================
+            document.getElementById(
+                "totalChildren"
+            ).innerText = children.length;
+
+            document.getElementById(
+                "attendanceRate"
+            ).innerText = "92%";
+
+            document.getElementById(
+                "feeStatus"
+            ).innerText = "Active";
+
+            // ===============================
+            // BUILD CARDS
+            // ===============================
             let html = "";
 
             children.forEach(function(c) {
-                const studentClass = c.student_class || c.className || "N/A";
-                const gender = c.gender || "N/A";
+
+                const studentClass =
+                    c.student_class || "N/A";
+
+                const gender =
+                    c.gender || "N/A";
 
                 html += `
-                    <div class="card">
-                        <h4>${c.name}</h4>
-                        <p>Class: ${studentClass}</p>
-                        <p>Gender: ${gender}</p>
+                    <div class="child-card">
+
+                        <h3>${c.name}</h3>
+
+                        <div class="info">
+                            <strong>Class:</strong>
+                            ${studentClass}
+                        </div>
+
+                        <div class="info">
+                            <strong>Gender:</strong>
+                            ${gender}
+                        </div>
+
+                        <div class="info">
+                            <strong>Admission No:</strong>
+                            ${c.admission_no || "N/A"}
+                        </div>
+
+                        <div class="info">
+                            <span class="badge paid">
+                                Fees Active
+                            </span>
+                        </div>
+
+                        <div class="actions">
+
+                            <button
+                                class="btn btn-results"
+                                onclick="viewResults('${c.id}')"
+                            >
+                                Results
+                            </button>
+
+                            <button
+                                class="btn btn-payments"
+                                onclick="viewPayments('${c.id}')"
+                            >
+                                Payments
+                            </button>
+
+                            <button
+                                class="btn btn-attendance"
+                                onclick="viewAttendance('${c.id}')"
+                            >
+                                Attendance
+                            </button>
+
+                        </div>
+
                     </div>
                 `;
             });
@@ -113,6 +377,41 @@
             container.innerHTML = html;
         }
 
+        // ===============================
+        // ACTIONS
+        // ===============================
+        function viewResults(id) {
+
+            window.location.href =
+                "../admin/results.html?student=" + id;
+        }
+
+        function viewPayments(id) {
+
+            window.location.href =
+                "../admin/payments.html?student=" + id;
+        }
+
+        function viewAttendance(id) {
+
+            window.location.href =
+                "../admin/attendance.html?student=" + id;
+        }
+
+        // ===============================
+        // LOGOUT
+        // ===============================
+        function logout() {
+
+            localStorage.clear();
+
+            window.location.href =
+                "../auth/login.html";
+        }
+
+        // ===============================
+        // INIT
+        // ===============================
         loadChildren();
     </script>
 

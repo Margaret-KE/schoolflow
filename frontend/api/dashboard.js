@@ -1,44 +1,55 @@
 // ===============================
-// DASHBOARD API (FINAL SAAS MULTI-SCHOOL)
+// DASHBOARD API (FINAL - SYNCED WITH BACKEND)
 // ===============================
 
 import API from "./auth";
 
 // ===============================
-// SUBSCRIPTION CHECK (FRONTEND EXAMPLE)
+// SUBSCRIPTION CHECK
 // ===============================
-const res = await fetch("http://localhost:5000/api/subscriptions", {
-    headers: { Authorization: "Bearer " + token }
-});
+export const checkSubscription = async() => {
+    try {
+        const res = await API.get("/subscriptions");
 
-const sub = await res.json();
+        if (res.data.status !== "active") {
+            window.location.href = "../admin/subscription.html";
+        }
 
-if (sub.status !== "active") {
-    window.location.href = "../admin/subscription.html";
-}
+        return res.data;
+    } catch (err) {
+        console.error("Subscription check failed:", err);
+        throw err;
+    }
+};
 
 // ===============================
 // MAIN DASHBOARD STATS
 // ===============================
-export const getDashboardStats = () =>
-    API.get("/dashboards");
+export const getDashboardStats = async() => {
+    const res = await API.get("/dashboards");
+    return res.data.data;
+};
 
 // ===============================
-// ROLE-BASED DASHBOARD (FUTURE READY)
+// ANALYTICS (CHART DATA)
 // ===============================
-export const getRoleDashboard = () =>
-    API.get("/dashboards/role");
+export const getDashboardAnalytics = async() => {
+    const res = await API.get("/dashboards/analytics");
+    return res.data.data;
+};
 
 // ===============================
-// LIVE DASHBOARD (REAL-TIME READY)
+// ROLE-BASED DASHBOARD
 // ===============================
-export const getDashboardLive = () =>
-    API.get("/dashboards/live");
+export const getRoleDashboard = async() => {
+    const res = await API.get("/dashboards/role");
+    return res.data.data;
+};
 
 // ===============================
-// ANALYTICS DATA (CHARTS / REPORTS)
+// LIVE DASHBOARD (OPTIONAL FUTURE)
 // ===============================
-export const getDashboardAnalytics = () =>
-    API.get("/dashboards/analytics");
-() =>
-API.get("/dashboards/analytics");
+export const getDashboardLive = async() => {
+    const res = await API.get("/dashboards/live");
+    return res.data.data;
+};

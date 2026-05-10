@@ -37,16 +37,46 @@
             }
         }
 
-        const token = localStorage.getItem("token");
-        const user = getUser();
+        async function validateSession() {
+            const token = localStorage.getItem("token");
+            const user = getUser();
 
-        // ===============================
-        // ROUTING LOGIC (SAAS SAFE)
-        // ===============================
-        setTimeout(() => {
+            // ===============================
+            // BASIC CHECK
+            // ===============================
+            if (!token || !user || !user.role) {
+                window.location.href = "landing.html";
+                return;
+            }
 
-            if (token && user && user.role) {
+            try {
+                // ===============================
+                // VERIFY TOKEN + SUBSCRIPTION
+                // ===============================
+                const res = await fetch("http://localhost:5000/api/subscriptions", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
 
+                // ❌ Invalid token / expired
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = "auth/login.html";
+                    return;
+                }
+
+                // ❌ Subscription issue
+                if (res.status === 403) {
+                    window.location.href = "admin/subscription.html";
+                    return;
+                }
+
+                const data = await res.json();
+
+                // ===============================
+                // ROLE-BASED REDIRECT
+                // ===============================
                 if (user.role === "admin") {
                     window.location.href = "admin/dashboard.html";
                 } else if (user.role === "teacher") {
@@ -55,11 +85,18 @@
                     window.location.href = "parent/dashboard.html";
                 }
 
-            } else {
-                window.location.href = "landing.html";
-            }
+            } catch (err) {
+                console.error("Session validation failed:", err);
 
-        }, 500);
+                // fallback
+                window.location.href = "auth/login.html";
+            }
+        }
+
+        // ===============================
+        // START APP
+        // ===============================
+        setTimeout(validateSession, 500);
     </script>
 
 </body>

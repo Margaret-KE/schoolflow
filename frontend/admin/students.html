@@ -120,9 +120,17 @@
             <input type="text" id="name" placeholder="Name">
             <input type="text" id="studentClass" placeholder="Class">
 
-            <select id="parentSelect">
-                <option value="">Parent (optional)</option>
-            </select>
+            <select id="role">
+    <option value="">Select Role</option>
+
+    <option value="student">Student</option>
+
+    <option value="parent">Parent</option>
+
+    <option value="teacher">Teacher</option>
+
+    <option value="admin">Admin</option>
+</select>
 
             <select id="gender">
                 <option value="">Gender</option>
@@ -137,7 +145,13 @@
         <div class="card">
             <h3>MPESA Payment</h3>
 
-            <select id="studentSelect"></select>
+            <select id="studentSelect">
+
+    <option value="">
+        Select Student
+    </option>
+
+</select>
             <input type="text" id="phone" placeholder="2547XXXXXXXX">
             <input type="number" id="amount" placeholder="Amount">
 

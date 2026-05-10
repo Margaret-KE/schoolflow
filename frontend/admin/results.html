@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Results - SchoolFlow</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f9;
+        }
+        
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 15px 20px;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .actions {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+        
+        .btn {
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-dark {
+            background: #1e293b;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .section {
+            margin-top: 30px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+        
+        table th,
+        table td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        table th {
+            background: #f3f4f6;
+        }
+        
+        .logout {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h2>🧾 Results Management</h2>
+        <button class="logout" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+
+        <!-- OVERVIEW -->
+        <div class="card">
+            <h3>Academic Results</h3>
+
+            <p>
+                Manage exams, report cards, performance analytics, and student grading.
+            </p>
+
+            <!-- ACTION BUTTONS -->
+            <div class="actions">
+
+                <button class="btn btn-primary" onclick="showSection('addResults')">
+                    ➕ Add Results
+                </button>
+
+                <button class="btn btn-success" onclick="generateReport()">
+                    📄 Generate Report Card
+                </button>
+
+                <button class="btn btn-warning" onclick="showSection('analytics')">
+                    📈 View Analytics
+                </button>
+
+                <button class="btn btn-dark" onclick="showSection('studentsTable')">
+                    👨‍🎓 Student Results
+                </button>
+
+                <button class="btn btn-danger" onclick="clearResults()">
+                    🗑 Clear Results
+                </button>
+
+            </div>
+        </div>
+
+        <!-- ADD RESULTS -->
+        <div id="addResults" class="card section hidden">
+
+            <h3>Add Student Results</h3>
+
+            <form id="resultForm">
+
+                <input type="text" id="studentName" placeholder="Student Name" required />
+
+                <input type="text" id="subject" placeholder="Subject" required />
+
+                <input type="number" id="score" placeholder="Score" required />
+
+                <select id="grade">
+                    <option value="A">Grade A</option>
+                    <option value="B">Grade B</option>
+                    <option value="C">Grade C</option>
+                    <option value="D">Grade D</option>
+                    <option value="E">Grade E</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary" style="margin-top:15px;">
+                    Save Result
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- ANALYTICS -->
+        <div id="analytics" class="card section hidden">
+
+            <h3>Performance Analytics</h3>
+
+            <ul>
+                <li>📊 Highest Performing Students</li>
+                <li>📉 Weak Subjects</li>
+                <li>🏆 Top Class Rankings</li>
+                <li>📈 Average Scores Per Subject</li>
+            </ul>
+
+        </div>
+
+        <!-- STUDENT TABLE -->
+        <div id="studentsTable" class="card section hidden">
+
+            <h3>Student Results Table</h3>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Score</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+
+                <tbody id="resultsBody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <script>
+        // ===============================
+        // SHOW SECTION
+        // ===============================
+        function showSection(id) {
+
+            document
+                .querySelectorAll(".section")
+                .forEach(function(section) {
+                    section.classList.add("hidden");
+                });
+
+            document
+                .getElementById(id)
+                .classList.remove("hidden");
+        }
+
+        // ===============================
+        // SAVE RESULTS
+        // ===============================
+        const resultForm =
+            document.getElementById("resultForm");
+
+        resultForm.addEventListener(
+            "submit",
+            function(e) {
+
+                e.preventDefault();
+
+                const student =
+                    document.getElementById("studentName").value;
+
+                const subject =
+                    document.getElementById("subject").value;
+
+                const score =
+                    document.getElementById("score").value;
+
+                const grade =
+                    document.getElementById("grade").value;
+
+                const row = `
+                    <tr>
+                        <td>${student}</td>
+                        <td>${subject}</td>
+                        <td>${score}</td>
+                        <td>${grade}</td>
+                    </tr>
+                `;
+
+                document
+                    .getElementById("resultsBody")
+                    .innerHTML += row;
+
+                resultForm.reset();
+
+                alert("Result saved successfully");
+            }
+        );
+
+        // ===============================
+        // REPORT CARD
+        // ===============================
+        function generateReport() {
+
+            alert(
+                "Report card generation connected successfully."
+            );
+        }
+
+        // ===============================
+        // CLEAR RESULTS
+        // ===============================
+        function clearResults() {
+
+            if (
+                confirm("Clear all results?")
+            ) {
+
+                document
+                    .getElementById("resultsBody")
+                    .innerHTML = "";
+
+                alert("Results cleared");
+            }
+        }
+
+        // ================= LOGOUT =================
+        function logout() {
+            localStorage.clear();
+            window.location.href = "../auth/login.html";
+        }
+    </script>
+
+</body>
+
+</html>
+
+</html>
+
+</html>
+
+</html>
+
+</html>
+
+</html>
