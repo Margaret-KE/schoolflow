@@ -1,11 +1,29 @@
 const express = require("express");
 const router = express.Router();
 
-const { createParent } = require("../controllers/parentController");
-const auth = require("../middleware/authMiddleware");
-const role = require("../middleware/roleMiddleware");
+const {
+    createParent,
+    getParents
+} = require("../controllers/parentController");
 
-// Only admin can create parents
-router.post("/", auth, role("admin"), createParent);
+const auth = require("../middleware/authMiddleware");
+const permission = require("../middleware/permissionMiddleware");
+
+// ===============================
+// PARENT ROUTES (SAAS CORE)
+// ===============================
+router.post(
+    "/",
+    auth,
+    permission("parents:create"),
+    createParent
+);
+
+router.get(
+    "/",
+    auth,
+    permission("parents:view"),
+    getParents
+);
 
 module.exports = router;

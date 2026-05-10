@@ -11,14 +11,40 @@ const {
 const auth = require("../middleware/authMiddleware");
 const role = require("../middleware/roleMiddleware");
 
-// Admin & Teacher
-router.post("/", auth, role("admin", "teacher"), addResult);
-router.get("/", auth, role("admin", "teacher"), getResults);
+// ===============================
+// ADMIN & TEACHER
+// ===============================
+router.post(
+    "/",
+    auth,
+    role("admin", "teacher"),
+    addResult
+);
 
-// Parent
-router.get("/my", auth, role("parent"), getMyResults);
+router.get(
+    "/",
+    auth,
+    role("admin", "teacher"),
+    getResults
+);
 
-// Report
-router.get("/student/:student_id", auth, getStudentReport);
+// ===============================
+// PARENT
+// ===============================
+router.get(
+    "/my",
+    auth,
+    role("parent"),
+    getMyResults
+);
+
+// ===============================
+// STUDENT REPORT
+// ===============================
+router.get(
+    "/student/:student_id",
+    auth,
+    getStudentReport
+);
 
 module.exports = router;

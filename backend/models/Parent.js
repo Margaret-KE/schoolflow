@@ -3,12 +3,43 @@ const sequelize = require("../config/db");
 const User = require("./User");
 
 const Parent = sequelize.define("Parent", {
-    occupation: DataTypes.STRING,
-    address: DataTypes.TEXT
-});
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
 
-// Relationship
-User.hasOne(Parent, { foreignKey: "user_id" });
-Parent.belongsTo(User, { foreignKey: "user_id" });
+    phone: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
+    occupation: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
+    address: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+
+    school_id: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+
+    user_id: {
+        type: DataTypes.UUID,
+        allowNull: false
+    }
+}, {
+    tableName: "parents",
+    timestamps: true,
+    indexes: [
+        { fields: ["user_id"] },
+        { fields: ["school_id"] }
+    ]
+});
 
 module.exports = Parent;

@@ -75,3 +75,27 @@ exports.getMyPayments = async(req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+exports.getStudentBalance = async(req, res) => {
+    try {
+        const { student_id } = req.params;
+
+        const payments = await Payment.findAll({
+            where: { student_id }
+        });
+
+        const totalPaid = payments.reduce(
+            (sum, p) => sum + parseFloat(p.amount),
+            0
+        );
+
+        res.json({
+            student_id,
+            totalPaid
+        });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

@@ -22,3 +22,4 @@ router.get("/my", auth, role("parent"), getMyPayments);
 router.get("/student/:student_id", auth, getStudentBalance);
 
 module.exports = router;
+module.exports = router;

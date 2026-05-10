@@ -7,10 +7,24 @@ const Subject = sequelize.define("Subject", {
         type: DataTypes.STRING,
         allowNull: false
     }
+}, {
+    tableName: "subjects",
+    timestamps: true,
+    indexes: [
+        { fields: ["school_id"] }
+    ]
 });
 
-// Relationships
-School.hasMany(Subject, { foreignKey: "school_id" });
-Subject.belongsTo(School, { foreignKey: "school_id" });
+// ===============================
+// SAAS RELATIONSHIP
+// ===============================
+School.hasMany(Subject, {
+    foreignKey: "school_id",
+    onDelete: "CASCADE"
+});
+
+Subject.belongsTo(School, {
+    foreignKey: "school_id"
+});
 
 module.exports = Subject;

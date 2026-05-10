@@ -1,24 +1,51 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const School = require("./School");
-const Parent = require("./Parent");
 
-const Student = sequelize.define("Student", {
-    name: {
-        type: DataTypes.STRING,
+const Parent = sequelize.define("Parent", {
+
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
+
+    // ===============================
+    // LINKED USER ACCOUNT
+    // ===============================
+    user_id: {
+        type: DataTypes.UUID,
         allowNull: false
     },
-    admission_no: DataTypes.STRING,
-    class: DataTypes.STRING,
-    gender: DataTypes.ENUM("male", "female"),
-    date_of_birth: DataTypes.DATE
+
+    // ===============================
+    // MULTI-TENANT SAFETY
+    // ===============================
+    school_id: {
+        type: DataTypes.UUID,
+        allowNull: false
+    },
+
+    // ===============================
+    // PARENT DETAILS
+    // ===============================
+    phone: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
+    address: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
+    occupation: {
+        type: DataTypes.STRING,
+        allowNull: true
+    }
+
+}, {
+    tableName: "parents",
+    timestamps: true
 });
 
-// Relationships
-School.hasMany(Student, { foreignKey: "school_id" });
-Student.belongsTo(School, { foreignKey: "school_id" });
-
-Parent.hasMany(Student, { foreignKey: "parent_id" });
-Student.belongsTo(Parent, { foreignKey: "parent_id" });
-
-module.exports = Student;
+module.exports = Parent;

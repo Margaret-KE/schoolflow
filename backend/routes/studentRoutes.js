@@ -4,17 +4,55 @@ const router = express.Router();
 const {
     createStudent,
     getStudents,
-    getMyChildren
+    getMyChildren,
+    updateStudent,
+    deleteStudent
 } = require("../controllers/studentController");
 
 const auth = require("../middleware/authMiddleware");
-const role = require("../middleware/roleMiddleware");
+const tenant = require("../middleware/tenantMiddleware");
+const subscription = require("../middleware/subscriptionMiddleware");
+const permission = require("../middleware/permissionMiddleware");
 
-// Admin & teacher
-router.post("/", auth, role("admin", "teacher"), createStudent);
-router.get("/", auth, role("admin", "teacher"), getStudents);
+// ===============================
+// STUDENT ROUTES (SAAS CORE)
+// ===============================
+router.use(auth, tenant, subscription);
 
-// Parent
-router.get("/my-children", auth, role("parent"), getMyChildren);
+router.post(
+    "/",
+    permission("students:create"),
+    createStudent
+);
+
+router.get(
+    "/my-children",
+    auth,
+    getMyChildren
+);
+
+router.get(
+    "/",
+    permission("students:view"),
+    getStudents
+);
+
+router.get(
+    "/my-children",
+    permission("students:view_own"),
+    getMyChildren
+);
+
+router.put(
+    "/:id",
+    permission("students:edit"),
+    updateStudent
+);
+
+router.delete(
+    "/:id",
+    permission("students:delete"),
+    deleteStudent
+);
 
 module.exports = router;

@@ -9,25 +9,56 @@ const Result = sequelize.define("Result", {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+
     grade: {
         type: DataTypes.STRING
     },
+
     term: {
         type: DataTypes.STRING
     },
+
     year: {
         type: DataTypes.INTEGER
     }
+}, {
+    tableName: "results",
+    timestamps: true,
+    indexes: [
+        { fields: ["school_id"] },
+        { fields: ["student_id"] },
+        { fields: ["subject_id"] }
+    ]
 });
 
-// Relationships
-School.hasMany(Result, { foreignKey: "school_id" });
-Result.belongsTo(School, { foreignKey: "school_id" });
+// ===============================
+// RELATIONSHIPS (SAAS SAFE)
+// ===============================
+School.hasMany(Result, {
+    foreignKey: "school_id",
+    onDelete: "CASCADE"
+});
 
-Student.hasMany(Result, { foreignKey: "student_id" });
-Result.belongsTo(Student, { foreignKey: "student_id" });
+Result.belongsTo(School, {
+    foreignKey: "school_id"
+});
 
-Subject.hasMany(Result, { foreignKey: "subject_id" });
-Result.belongsTo(Subject, { foreignKey: "subject_id" });
+Student.hasMany(Result, {
+    foreignKey: "student_id",
+    onDelete: "CASCADE"
+});
+
+Result.belongsTo(Student, {
+    foreignKey: "student_id"
+});
+
+Subject.hasMany(Result, {
+    foreignKey: "subject_id",
+    onDelete: "CASCADE"
+});
+
+Result.belongsTo(Subject, {
+    foreignKey: "subject_id"
+});
 
 module.exports = Result;
