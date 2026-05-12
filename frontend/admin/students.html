@@ -7,8 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #f4f6f9;
             margin: 0;
         }
@@ -16,10 +20,15 @@
         .header {
             background: #1e293b;
             color: white;
-            padding: 15px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
         }
         
         .container {
@@ -28,54 +37,85 @@
         
         .card {
             background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        h2,
+        h3 {
+            margin-top: 0;
         }
         
         input,
         select,
         button {
-            padding: 8px;
+            padding: 10px;
             margin: 5px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+        
+        input,
+        select {
+            min-width: 180px;
         }
         
         button {
             cursor: pointer;
             border: none;
-            border-radius: 6px;
+            font-weight: bold;
         }
         
-        .add-btn {
+        .btn-primary {
             background: #2563eb;
             color: white;
         }
         
-        .pay-btn {
+        .btn-success {
             background: #16a34a;
             color: white;
         }
         
-        .edit-btn {
+        .btn-warning {
             background: #f59e0b;
             color: white;
         }
         
-        .delete-btn {
+        .btn-danger {
             background: #ef4444;
             color: white;
+        }
+        
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+        
+        .small-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
         
         th,
         td {
-            padding: 8px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            text-align: left;
         }
         
         th {
@@ -83,11 +123,40 @@
             color: white;
         }
         
-        .logout {
-            background: #ef4444;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 20px;
+        }
+        
+        @media(max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            input,
+            select,
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            .header-buttons {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -95,81 +164,111 @@
 <body>
 
     <div class="header">
-        <h2>Students Management</h2>
-        <button class="logout" onclick="logout()">Logout</button>
+        <h2>🎓 Students Management</h2>
+
+        <div class="header-buttons">
+            <button class="btn-secondary small-btn" onclick="refreshPage()">
+                Refresh
+            </button>
+
+            <button class="btn-danger small-btn" onclick="logout()">
+                Logout
+            </button>
+        </div>
     </div>
 
     <div class="container">
 
-        <!-- FILTER -->
+        <!-- FILTERS -->
         <div class="card">
-            <input type="text" id="search" placeholder="Search..." onkeyup="applyFilters()">
-            <input type="text" id="classFilter" placeholder="Class..." onkeyup="applyFilters()">
+            <h3>Search & Filters</h3>
 
-            <select id="genderFilter" onchange="applyFilters()">
-                <option value="">All Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-            </select>
+            <div class="form-row">
+                <input type="text" id="search" placeholder="Search student..." onkeyup="applyFilters()" />
+
+                <input type="text" id="classFilter" placeholder="Filter by class..." onkeyup="applyFilters()" />
+
+                <select id="genderFilter" onchange="applyFilters()">
+                    <option value="">All Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
         </div>
 
-        <!-- STUDENT FORM -->
+        <!-- ADD / EDIT -->
         <div class="card">
             <h3>Add / Edit Student</h3>
 
-            <input type="text" id="name" placeholder="Name">
-            <input type="text" id="studentClass" placeholder="Class">
+            <div class="form-row">
 
-            <select id="role">
-    <option value="">Select Role</option>
+                <input type="text" id="name" placeholder="Student Name" />
 
-    <option value="student">Student</option>
+                <input type="text" id="studentClass" placeholder="Class" />
 
-    <option value="parent">Parent</option>
+                <input type="text" id="admissionNo" placeholder="Admission Number" />
 
-    <option value="teacher">Teacher</option>
+                <select id="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
 
-    <option value="admin">Admin</option>
-</select>
+                <select id="parentSelect">
+                    <option value="">Select Parent</option>
+                </select>
 
-            <select id="gender">
-                <option value="">Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-            </select>
+                <button class="btn-primary" onclick="saveStudent()">
+                    Save Student
+                </button>
 
-            <button class="add-btn" onclick="addStudent()">Save</button>
+            </div>
         </div>
 
         <!-- MPESA -->
         <div class="card">
-            <h3>MPESA Payment</h3>
+            <h3>💰 MPESA Fee Payment</h3>
 
-            <select id="studentSelect">
+            <div class="form-row">
 
-    <option value="">
-        Select Student
-    </option>
+                <select id="studentSelect">
+                    <option value="">Select Student</option>
+                </select>
 
-</select>
-            <input type="text" id="phone" placeholder="2547XXXXXXXX">
-            <input type="number" id="amount" placeholder="Amount">
+                <input type="text" id="phone" placeholder="2547XXXXXXXX" />
 
-            <button class="pay-btn" onclick="payFees()">Send STK</button>
+                <input type="number" id="amount" placeholder="Amount" />
+
+                <button class="btn-success" onclick="payFees()">
+                    Send STK Push
+                </button>
+
+            </div>
         </div>
 
-        <!-- TABLE -->
+        <!-- STUDENTS TABLE -->
         <div class="card">
+            <h3>Students List</h3>
+
             <table>
                 <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Admission</th>
                         <th>Class</th>
                         <th>Gender</th>
+                        <th>Parent</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="studentTable"></tbody>
+
+                <tbody id="studentTable">
+                    <tr>
+                        <td colspan="6" class="empty">
+                            Loading students...
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
 
@@ -179,15 +278,21 @@
         const token = localStorage.getItem("token");
         const API_BASE = "http://localhost:5000/api";
 
-        if (!token) window.location.href = "../auth/login.html";
+        if (!token) {
+            window.location.href = "../auth/login.html";
+        }
 
         let allStudents = [];
-        let filtered = [];
+        let filteredStudents = [];
         let editingId = null;
 
-        // ================= SAFE FETCH =================
+        // ===============================
+        // SAFE API
+        // ===============================
         async function api(url, method = "GET", body = null) {
+
             try {
+
                 const res = await fetch(API_BASE + url, {
                     method,
                     headers: {
@@ -198,6 +303,7 @@
                 });
 
                 let data = {};
+
                 try {
                     data = await res.json();
                 } catch (e) {
@@ -205,182 +311,383 @@
                 }
 
                 if (!res.ok) {
-                    throw new Error(data && data.message ? data.message : "Request failed");
+                    throw new Error(
+                        data && data.message ?
+                        data.message :
+                        "Request failed"
+                    );
                 }
 
                 return data;
 
             } catch (err) {
+
                 console.error(err);
+
                 alert(err.message || "Server error");
-                return [];
+
+                return null;
             }
         }
 
-        // ================= LOAD =================
+        // ===============================
+        // LOAD STUDENTS
+        // ===============================
         async function loadStudents() {
-            const data = await api("/students");
 
-            if (!Array.isArray(data)) return;
+            const response = await api("/students");
 
-            allStudents = data;
-            applyFilters();
+            if (!response || !response.success) {
+                return;
+            }
 
-            const sel = document.getElementById("studentSelect");
-            sel.innerHTML = "";
+            allStudents = response.data || [];
 
-            allStudents.forEach(function(s) {
-                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-            });
+            filteredStudents = [...allStudents];
+
+            renderStudents();
+
+            loadStudentDropdown();
         }
 
-        // ================= PARENTS =================
+        // ===============================
+        // LOAD PARENTS
+        // ===============================
         async function loadParents() {
-            const data = await api("/parents");
 
-            const sel = document.getElementById("parentSelect");
-            sel.innerHTML = `<option value="">Parent</option>`;
+            const response = await api("/parents");
 
-            if (!Array.isArray(data)) return;
+            const parentSelect = document.getElementById("parentSelect");
 
-            data.forEach(function(p) {
+            parentSelect.innerHTML = `
+                <option value="">Select Parent</option>
+            `;
+
+            if (!response || !response.success) {
+                return;
+            }
+
+            const parents = response.data || [];
+
+            parents.forEach(function(parent) {
+
                 let parentName = "Parent";
 
-                if (p.User && p.User.name) {
-                    parentName = p.User.name;
-                } else if (p.user && p.user.name) {
-                    parentName = p.user.name;
-                } else if (p.name) {
-                    parentName = p.name;
+                if (parent.User && parent.User.name) {
+                    parentName = parent.User.name;
                 }
 
-                sel.innerHTML += `<option value="${p.id}">${parentName}</option>`;
+                parentSelect.innerHTML += `
+                    <option value="${parent.id}">
+                        ${parentName}
+                    </option>
+                `;
             });
         }
 
-        // ================= FILTER =================
-        function applyFilters() {
-            const search = document.getElementById("search").value.toLowerCase();
-            const cls = document.getElementById("classFilter").value.toLowerCase();
-            const gender = document.getElementById("genderFilter").value;
+        // ===============================
+        // LOAD STUDENT DROPDOWN
+        // ===============================
+        function loadStudentDropdown() {
 
-            filtered = allStudents.filter(function(s) {
-                const name = (s.name || "").toLowerCase();
-                const studentClass = (s.student_class || "").toLowerCase();
+            const studentSelect = document.getElementById("studentSelect");
+
+            studentSelect.innerHTML = `
+                <option value="">Select Student</option>
+            `;
+
+            allStudents.forEach(function(student) {
+
+                studentSelect.innerHTML += `
+                    <option value="${student.id}">
+                        ${student.name}
+                    </option>
+                `;
+            });
+        }
+
+        // ===============================
+        // FILTERS
+        // ===============================
+        function applyFilters() {
+
+            const search = document
+                .getElementById("search")
+                .value
+                .toLowerCase();
+
+            const classFilter = document
+                .getElementById("classFilter")
+                .value
+                .toLowerCase();
+
+            const genderFilter = document
+                .getElementById("genderFilter")
+                .value;
+
+            filteredStudents = allStudents.filter(function(student) {
+
+                const studentName = (student.name || "").toLowerCase();
+
+                const studentClass = (
+                    student.student_class || ""
+                ).toLowerCase();
 
                 return (
-                    (!search || name.includes(search)) &&
-                    (!cls || studentClass.includes(cls)) &&
-                    (!gender || s.gender === gender)
+                    (!search || studentName.includes(search)) &&
+                    (!classFilter || studentClass.includes(classFilter)) &&
+                    (!genderFilter || student.gender === genderFilter)
                 );
             });
 
-            render();
+            renderStudents();
         }
 
-        // ================= RENDER =================
-        function render() {
+        // ===============================
+        // RENDER STUDENTS
+        // ===============================
+        function renderStudents() {
+
             const table = document.getElementById("studentTable");
+
             table.innerHTML = "";
 
-            filtered.forEach(function(s) {
-                const studentClass = s.student_class || "";
-                const gender = s.gender || "";
+            if (filteredStudents.length === 0) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty">
+                            No students found
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            filteredStudents.forEach(function(student) {
+
+                let parentName = "-";
+
+                if (
+                    student.Parent &&
+                    student.Parent.User &&
+                    student.Parent.User.name
+                ) {
+                    parentName = student.Parent.User.name;
+                }
 
                 table.innerHTML += `
                     <tr>
-                        <td>${s.name}</td>
-                        <td>${studentClass || "-"}</td>
-                        <td>${gender || "-"}</td>
+                        <td>${student.name || "-"}</td>
+
+                        <td>${student.admission_no || "-"}</td>
+
+                        <td>${student.student_class || "-"}</td>
+
+                        <td>${student.gender || "-"}</td>
+
+                        <td>${parentName}</td>
+
                         <td>
-                            <button class="edit-btn" onclick="edit('${s.id}','${s.name}','${studentClass}','${gender}')">Edit</button>
-                            <button class="delete-btn" onclick="del('${s.id}')">Delete</button>
+                            <div class="actions">
+
+                                <button
+                                    class="btn-warning small-btn"
+                                    onclick="editStudent(
+                                        '${student.id}',
+                                        '${student.name || ""}',
+                                        '${student.student_class || ""}',
+                                        '${student.admission_no || ""}',
+                                        '${student.gender || ""}',
+                                        '${student.parent_id || ""}'
+                                    )"
+                                >
+                                    Edit
+                                </button>
+
+                                <button
+                                    class="btn-danger small-btn"
+                                    onclick="deleteStudent('${student.id}')"
+                                >
+                                    Delete
+                                </button>
+
+                            </div>
                         </td>
-                    </tr>`;
+                    </tr>
+                `;
             });
         }
 
-        // ================= CREATE / UPDATE =================
-        async function addStudent() {
-            const nameEl = document.getElementById("name");
-            const classEl = document.getElementById("studentClass");
-            const genderEl = document.getElementById("gender");
-            const parentEl = document.getElementById("parentSelect");
+        // ===============================
+        // SAVE STUDENT
+        // ===============================
+        async function saveStudent() {
 
-            if (!nameEl.value) {
-                alert("Name required");
+            const name = document.getElementById("name").value;
+            const studentClass = document.getElementById("studentClass").value;
+            const admissionNo = document.getElementById("admissionNo").value;
+            const gender = document.getElementById("gender").value;
+            const parentId = document.getElementById("parentSelect").value;
+
+            if (!name || !studentClass) {
+                alert("Name and class are required");
                 return;
             }
 
             const body = {
-                name: nameEl.value,
-                className: classEl.value,
-                gender: genderEl.value,
-                parent_id: parentEl.value || null
+                name,
+                className: studentClass,
+                admission_no: admissionNo,
+                gender,
+                parent_id: parentId || null
             };
 
-            let url = "/students";
-            let method = "POST";
+            let response = null;
 
             if (editingId) {
-                url = "/students/" + editingId;
-                method = "PUT";
+
+                response = await api(
+                    "/students/" + editingId,
+                    "PUT",
+                    body
+                );
+
+            } else {
+
+                response = await api(
+                    "/students",
+                    "POST",
+                    body
+                );
             }
 
-            await api(url, method, body);
+            if (response && response.success) {
 
-            editingId = null;
-            nameEl.value = "";
-            classEl.value = "";
-            genderEl.value = "";
-            parentEl.value = "";
+                clearForm();
 
-            loadStudents();
+                editingId = null;
+
+                loadStudents();
+
+                alert(response.message);
+            }
         }
 
-        // ================= EDIT =================
-        function edit(id, n, c, g) {
+        // ===============================
+        // EDIT STUDENT
+        // ===============================
+        function editStudent(
+            id,
+            name,
+            studentClass,
+            admissionNo,
+            gender,
+            parentId
+        ) {
+
             editingId = id;
-            document.getElementById("name").value = n;
-            document.getElementById("studentClass").value = c || "";
-            document.getElementById("gender").value = g || "";
+
+            document.getElementById("name").value = name;
+            document.getElementById("studentClass").value = studentClass;
+            document.getElementById("admissionNo").value = admissionNo;
+            document.getElementById("gender").value = gender;
+            document.getElementById("parentSelect").value = parentId;
         }
 
-        // ================= DELETE =================
-        async function del(id) {
-            if (!confirm("Delete student?")) return;
+        // ===============================
+        // DELETE STUDENT
+        // ===============================
+        async function deleteStudent(id) {
 
-            await api("/students/" + id, "DELETE");
-            loadStudents();
-        }
+            const confirmDelete = confirm(
+                "Delete this student?"
+            );
 
-        // ================= MPESA =================
-        async function payFees() {
-            const phoneEl = document.getElementById("phone");
-            const amountEl = document.getElementById("amount");
-            const studentEl = document.getElementById("studentSelect");
-
-            if (!phoneEl.value || !amountEl.value) {
-                alert("Fill all payment fields");
+            if (!confirmDelete) {
                 return;
             }
 
-            await api("/mpesa/pay", "POST", {
-                phone: phoneEl.value,
-                amount: amountEl.value,
-                student_id: studentEl.value
-            });
+            const response = await api(
+                "/students/" + id,
+                "DELETE"
+            );
 
-            alert("STK Sent");
+            if (response && response.success) {
+
+                loadStudents();
+
+                alert(response.message);
+            }
         }
 
-        // ================= LOGOUT =================
+        // ===============================
+        // PAY FEES
+        // ===============================
+        async function payFees() {
+
+            const studentId = document.getElementById("studentSelect").value;
+            const phone = document.getElementById("phone").value;
+            const amount = document.getElementById("amount").value;
+
+            if (!studentId || !phone || !amount) {
+
+                alert("Fill all payment fields");
+
+                return;
+            }
+
+            const response = await api(
+                "/mpesa/pay",
+                "POST", {
+                    student_id: studentId,
+                    phone,
+                    amount
+                }
+            );
+
+            if (response) {
+
+                alert(
+                    response.message ||
+                    "STK Push sent successfully"
+                );
+            }
+        }
+
+        // ===============================
+        // CLEAR FORM
+        // ===============================
+        function clearForm() {
+
+            document.getElementById("name").value = "";
+            document.getElementById("studentClass").value = "";
+            document.getElementById("admissionNo").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("parentSelect").value = "";
+        }
+
+        // ===============================
+        // REFRESH
+        // ===============================
+        function refreshPage() {
+            location.reload();
+        }
+
+        // ===============================
+        // LOGOUT
+        // ===============================
         function logout() {
+
             localStorage.clear();
+
             window.location.href = "../auth/login.html";
         }
 
+        // ===============================
         // INIT
+        // ===============================
         loadStudents();
         loadParents();
     </script>

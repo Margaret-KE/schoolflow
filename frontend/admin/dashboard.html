@@ -7,7 +7,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -16,9 +15,6 @@
             font-family: Arial, sans-serif;
             background: #f4f6f9;
         }
-        /* ===============================
-        HEADER
-        =============================== */
         
         .header {
             background: #1e293b;
@@ -44,16 +40,10 @@
             border-radius: 6px;
             cursor: pointer;
         }
-        /* ===============================
-        CONTAINER
-        =============================== */
         
         .container {
             padding: 20px;
         }
-        /* ===============================
-        STATS
-        =============================== */
         
         .stats {
             display: grid;
@@ -76,14 +66,6 @@
             font-size: 28px;
         }
         
-        .card p {
-            margin-top: 10px;
-            color: #555;
-        }
-        /* ===============================
-        CHARTS
-        =============================== */
-        
         .charts {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -94,291 +76,164 @@
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .chart-title {
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: #1e293b;
         }
         
         canvas {
             width: 100% !important;
             height: 320px !important;
         }
-        /* ===============================
-        MOBILE
-        =============================== */
-        
-        @media (max-width: 900px) {
-            .stats {
-                grid-template-columns: 1fr 1fr;
-            }
-            .charts {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 600px) {
-            .stats {
-                grid-template-columns: 1fr;
-            }
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-        }
     </style>
 </head>
 
 <body>
 
-    <!-- ===============================
-HEADER
-=============================== -->
     <div class="header">
-
         <div>
             <strong>🏫 SchoolFlow Admin</strong>
-
             <span class="nav">
-            <a href="dashboard.html">Dashboard</a>
-            <a href="students.html">Students</a>
-            <a href="payments.html">Payments</a>
-            <a href="attendance.html">Attendance</a>
-        </span>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="students.html">Students</a>
+                <a href="payments.html">Payments</a>
+                <a href="attendance.html">Attendance</a>
+            </span>
         </div>
 
-        <button class="logout" onclick="logout()">
-        Logout
-    </button>
-
+        <button class="logout" onclick="logout()">Logout</button>
     </div>
 
-    <!-- ===============================
-MAIN CONTENT
-=============================== -->
     <div class="container">
 
-        <!-- ===============================
-    STATS
-    =============================== -->
         <div class="stats">
-
             <div class="card">
                 <h2 id="students">0</h2>
                 <p>Total Students</p>
             </div>
-
             <div class="card">
                 <h2 id="parents">0</h2>
                 <p>Total Parents</p>
             </div>
-
             <div class="card">
                 <h2 id="teachers">0</h2>
                 <p>Total Teachers</p>
             </div>
-
             <div class="card">
                 <h2 id="revenue">KES 0</h2>
                 <p>Total Revenue</p>
             </div>
-
         </div>
 
-        <!-- ===============================
-    CHARTS
-    =============================== -->
         <div class="charts">
-
-            <div class="chart-card">
-                <div class="chart-title">
-                    Student Gender Distribution
-                </div>
-
-                <canvas id="genderChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">
-                    Students Per Class
-                </div>
-
-                <canvas id="classChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">
-                    Attendance Analytics
-                </div>
-
-                <canvas id="attendanceChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-title">
-                    Revenue Analytics
-                </div>
-
-                <canvas id="revenueChart"></canvas>
-            </div>
-
+            <div class="chart-card"><canvas id="genderChart"></canvas></div>
+            <div class="chart-card"><canvas id="classChart"></canvas></div>
+            <div class="chart-card"><canvas id="attendanceChart"></canvas></div>
+            <div class="chart-card"><canvas id="revenueChart"></canvas></div>
         </div>
 
     </div>
 
-    <!-- ===============================
-JAVASCRIPT
-=============================== -->
     <script>
-        const token = localStorage.getItem("token");
-
         const API_BASE = "http://localhost:5000/api";
 
+        let token = localStorage.getItem("token");
+        let refreshToken = localStorage.getItem("refreshToken");
+
+        const charts = {};
+
         // ===============================
-        // AUTH CHECK
+        // LOGOUT
         // ===============================
-        if (!token) {
+        function logout() {
+            localStorage.clear();
             window.location.href = "../auth/login.html";
         }
 
         // ===============================
-        // CHART STORAGE
+        // REFRESH TOKEN
         // ===============================
-        const charts = {};
-
-        // ===============================
-        // SAFE API FETCH
-        // ===============================
-        async function api(url) {
-
+        async function refreshAccessToken() {
             try {
-
-                const response = await fetch(API_BASE + url, {
+                const res = await fetch(API_BASE + "/auth/refresh", {
+                    method: "POST",
                     headers: {
-                        Authorization: "Bearer " + token
-                    }
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        refreshToken
+                    })
                 });
 
-                let data = {};
+                const data = await res.json();
 
-                try {
-                    data = await response.json();
-                } catch (err) {
-                    data = {};
-                }
+                if (!res.ok) throw new Error("Refresh failed");
 
-                if (!response.ok) {
-
-                    const message =
-                        data.message ?
-                        data.message :
-                        "Request failed";
-
-                    throw new Error(message);
-                }
-
-                return data;
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(error.message || "Server Error");
-
-                return {};
-            }
-        }
-
-        // ===============================
-        // SUBSCRIPTION CHECK
-        // ===============================
-        async function checkSubscription() {
-
-            try {
-
-                const response = await fetch(
-                    API_BASE + "/subscriptions", {
-                        headers: {
-                            Authorization: "Bearer " + token
-                        }
-                    }
-                );
-
-                if (response.status === 401) {
-
-                    localStorage.clear();
-
-                    window.location.href =
-                        "../auth/login.html";
-
-                    return false;
-                }
-
-                if (response.status === 403) {
-
-                    window.location.href =
-                        "subscription.html";
-
-                    return false;
-                }
+                token = data.accessToken;
+                localStorage.setItem("token", token);
 
                 return true;
 
-            } catch (error) {
-
-                console.error(error);
-
+            } catch (err) {
+                logout();
                 return false;
             }
         }
 
         // ===============================
-        // DESTROY CHART
+        // SAFE API (AUTO REFRESH)
         // ===============================
-        function destroyChart(id) {
+        async function api(url, retry = true) {
 
-            if (charts[id]) {
-                charts[id].destroy();
+            const res = await fetch(API_BASE + url, {
+                headers: {
+                    Authorization: "Bearer " + token
+                }
+            });
+
+            if (res.status === 401 && retry) {
+
+                const refreshed = await refreshAccessToken();
+
+                if (refreshed) {
+                    return api(url, false);
+                }
             }
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) throw new Error(data.message || "Request failed");
+
+            return data;
         }
 
         // ===============================
-        // GENDER CHART
+        // CHART DESTROY
         // ===============================
-        function buildGenderChart(students) {
+        function destroy(id) {
+            if (charts[id]) charts[id].destroy();
+        }
 
-            destroyChart("gender");
+        // ===============================
+        // GENDER CHART (COLORED)
+        // ===============================
+        function genderChart(students) {
 
-            let male = 0;
-            let female = 0;
+            destroy("gender");
 
-            if (Array.isArray(students)) {
+            let male = 0,
+                female = 0;
 
-                students.forEach(function(student) {
-
-                    if (student.gender === "male") {
-                        male++;
-                    }
-
-                    if (student.gender === "female") {
-                        female++;
-                    }
-                });
-            }
+            students.forEach(s => {
+                if (s.gender === "male") male++;
+                if (s.gender === "female") female++;
+            });
 
             charts.gender = new Chart(
                 document.getElementById("genderChart"), {
                     type: "pie",
-
                     data: {
                         labels: ["Male", "Female"],
-
                         datasets: [{
-                            data: [male, female]
+                            data: [male, female],
+                            backgroundColor: ["#3b82f6", "#ec4899"]
                         }]
                     }
                 }
@@ -388,39 +243,26 @@ JAVASCRIPT
         // ===============================
         // CLASS CHART
         // ===============================
-        function buildClassChart(students) {
+        function classChart(students) {
 
-            destroyChart("class");
+            destroy("class");
 
             const map = {};
 
-            if (Array.isArray(students)) {
-
-                students.forEach(function(student) {
-
-                    const cls =
-                        student.student_class ?
-                        student.student_class :
-                        "Unknown";
-
-                    if (!map[cls]) {
-                        map[cls] = 0;
-                    }
-
-                    map[cls]++;
-                });
-            }
+            students.forEach(s => {
+                const c = s.student_class || "Unknown";
+                map[c] = (map[c] || 0) + 1;
+            });
 
             charts.class = new Chart(
                 document.getElementById("classChart"), {
                     type: "bar",
-
                     data: {
                         labels: Object.keys(map),
-
                         datasets: [{
                             label: "Students",
-                            data: Object.values(map)
+                            data: Object.values(map),
+                            backgroundColor: "#22c55e"
                         }]
                     }
                 }
@@ -428,35 +270,23 @@ JAVASCRIPT
         }
 
         // ===============================
-        // ATTENDANCE CHART
+        // ATTENDANCE
         // ===============================
-        function buildAttendanceChart(attendance) {
+        function attendanceChart(data) {
 
-            destroyChart("attendance");
-
-            let present = 0;
-            let absent = 0;
-
-            if (attendance) {
-
-                if (attendance.present) {
-                    present = attendance.present;
-                }
-
-                if (attendance.absent) {
-                    absent = attendance.absent;
-                }
-            }
+            destroy("attendance");
 
             charts.attendance = new Chart(
                 document.getElementById("attendanceChart"), {
                     type: "doughnut",
-
                     data: {
                         labels: ["Present", "Absent"],
-
                         datasets: [{
-                            data: [present, absent]
+                            data: [
+                                (data && data.present) ? data.present : 0,
+                                (data && data.absent) ? data.absent : 0
+                            ],
+                            backgroundColor: ["#10b981", "#ef4444"]
                         }]
                     }
                 }
@@ -464,36 +294,22 @@ JAVASCRIPT
         }
 
         // ===============================
-        // REVENUE CHART
+        // REVENUE
         // ===============================
-        function buildRevenueChart(revenue) {
+        function revenueChart(data) {
 
-            destroyChart("revenue");
-
-            let labels = [];
-            let values = [];
-
-            if (revenue) {
-
-                if (Array.isArray(revenue.labels)) {
-                    labels = revenue.labels;
-                }
-
-                if (Array.isArray(revenue.data)) {
-                    values = revenue.data;
-                }
-            }
+            destroy("revenue");
 
             charts.revenue = new Chart(
                 document.getElementById("revenueChart"), {
                     type: "line",
-
                     data: {
-                        labels: labels,
-
+                        labels: (data && data.labels) ? data.labels : [],
                         datasets: [{
                             label: "Revenue",
-                            data: values
+                            data: (data && data.data) ? data.data : [],
+                            borderColor: "#f59e0b",
+                            fill: false
                         }]
                     }
                 }
@@ -503,72 +319,29 @@ JAVASCRIPT
         // ===============================
         // LOAD DASHBOARD
         // ===============================
-        async function loadDashboard() {
+        async function load() {
 
-            const allowed = await checkSubscription();
+            try {
 
-            if (!allowed) {
-                return;
+                const dashboard = await api("/dashboards");
+                const students = await api("/students");
+
+                document.getElementById("students").innerText = dashboard.totalStudents || 0;
+                document.getElementById("parents").innerText = dashboard.totalParents || 0;
+                document.getElementById("teachers").innerText = dashboard.totalTeachers || 0;
+                document.getElementById("revenue").innerText = "KES " + (dashboard.totalRevenue || 0);
+
+                genderChart(students);
+                classChart(students);
+                attendanceChart(dashboard.attendanceChart);
+                revenueChart(dashboard.revenueChart);
+
+            } catch (err) {
+                console.error(err.message);
             }
-
-            // ===============================
-            // DASHBOARD DATA
-            // ===============================
-            const dashboard =
-                await api("/dashboards");
-
-            // ===============================
-            // UPDATE STATS
-            // ===============================
-            document.getElementById("students").innerText =
-                dashboard.totalStudents || 0;
-
-            document.getElementById("parents").innerText =
-                dashboard.totalParents || 0;
-
-            document.getElementById("teachers").innerText =
-                dashboard.totalTeachers || 0;
-
-            document.getElementById("revenue").innerText =
-                "KES " + (dashboard.totalRevenue || 0);
-
-            // ===============================
-            // STUDENTS
-            // ===============================
-            const students =
-                await api("/students");
-
-            // ===============================
-            // BUILD CHARTS
-            // ===============================
-            buildGenderChart(students);
-
-            buildClassChart(students);
-
-            buildAttendanceChart(
-                dashboard.attendanceChart
-            );
-
-            buildRevenueChart(
-                dashboard.revenueChart
-            );
         }
 
-        // ===============================
-        // LOGOUT
-        // ===============================
-        function logout() {
-
-            localStorage.clear();
-
-            window.location.href =
-                "../auth/login.html";
-        }
-
-        // ===============================
-        // START
-        // ===============================
-        loadDashboard();
+        load();
     </script>
 
 </body>

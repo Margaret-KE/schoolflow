@@ -17,6 +17,9 @@
             background: #1e293b;
             color: white;
             padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .container {
@@ -115,8 +118,17 @@
         .logout {
             background: #ef4444;
             color: white;
-            padding: 8px 12px;
+            padding: 10px 16px;
             border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        
+        .logout:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -125,7 +137,9 @@
 
     <div class="header">
         <h2>🧾 Results Management</h2>
-        <button class="logout" onclick="logout()">Logout</button>
+        <button class="logout" onclick="logout()">
+            Logout
+        </button>
     </div>
 
     <div class="container">
@@ -327,15 +341,5 @@
     </script>
 
 </body>
-
-</html>
-
-</html>
-
-</html>
-
-</html>
-
-</html>
 
 </html>

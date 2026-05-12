@@ -90,34 +90,54 @@
             <a href="../landing.html">Back to Home</a>
         </div>
     </div>
-
     <script>
         const form = document.getElementById("loginForm");
         const errorEl = document.getElementById("error");
 
+        const API_BASE = "http://localhost:5000/api";
+
+        // ===============================
+        // ROLE REDIRECT
+        // ===============================
         function redirectByRole(role) {
+
             if (role === "admin") {
                 window.location.href = "../admin/dashboard.html";
+
             } else if (role === "teacher") {
                 window.location.href = "../teacher/dashboard.html";
-            } else {
+
+            } else if (role === "parent") {
                 window.location.href = "../parent/dashboard.html";
+
+            } else {
+                window.location.href = "../landing.html";
             }
         }
 
-        form.addEventListener("submit", async(e) => {
+        // ===============================
+        // LOGIN
+        // ===============================
+        form.addEventListener("submit", async function(e) {
+
             e.preventDefault();
+
             errorEl.textContent = "";
 
-            const email = document.getElementById("email").value;
+            const email = document.getElementById("email").value.trim();
+
             const password = document.getElementById("password").value;
 
             try {
-                const res = await fetch("http://localhost:5000/api/auth/login", {
+
+                const res = await fetch(API_BASE + "/auth/login", {
+
                     method: "POST",
+
                     headers: {
                         "Content-Type": "application/json"
                     },
+
                     body: JSON.stringify({
                         email,
                         password
@@ -126,33 +146,65 @@
 
                 const data = await res.json();
 
+                // ===============================
+                // LOGIN FAILED
+                // ===============================
                 if (!res.ok) {
-                    errorEl.textContent = data.message || "Login failed";
+
+                    // clear bad tokens
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem("user");
+
+                    errorEl.textContent =
+                        data.message || "Login failed";
+
                     return;
                 }
 
-                const token = data.token || data.accessToken;
+                // ===============================
+                // TOKEN SAFETY
+                // ===============================
+                if (!data.accessToken || !data.user) {
 
-                if (!token || !data.user) {
-                    errorEl.textContent = "Invalid server response";
+                    errorEl.textContent =
+                        "Invalid server response";
+
                     return;
                 }
 
-                // ================= SAAS SAFE STORAGE =================
-                localStorage.setItem("token", data.accessToken);
-                localStorage.setItem("refreshToken", data.refreshToken);
-                localStorage.setItem("user", JSON.stringify(data.user));
+                // ===============================
+                // SAVE AUTH
+                // ===============================
+                localStorage.setItem(
+                    "token",
+                    data.accessToken
+                );
 
-                // ================= ROLE ROUTING =================
+                localStorage.setItem(
+                    "refreshToken",
+                    data.refreshToken || ""
+                );
+
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(data.user)
+                );
+
+                // ===============================
+                // REDIRECT
+                // ===============================
                 redirectByRole(data.user.role);
 
             } catch (err) {
-                console.error(err);
-                errorEl.textContent = "Server error. Try again.";
+
+                console.error("LOGIN ERROR:", err);
+
+                errorEl.textContent =
+                    "Server error. Try again.";
             }
         });
     </script>
-
 </body>
 
 </html>
