@@ -330,18 +330,19 @@
             }
         }
 
+
         // ===============================
         // LOAD STUDENTS
         // ===============================
         async function loadStudents() {
 
-            const response = await api("/students");
+            const students = await api("/students");
 
-            if (!response || !response.success) {
+            if (!Array.isArray(students)) {
                 return;
             }
 
-            allStudents = response.data || [];
+            allStudents = students;
 
             filteredStudents = [...allStudents];
 
@@ -350,24 +351,24 @@
             loadStudentDropdown();
         }
 
+
         // ===============================
         // LOAD PARENTS
         // ===============================
         async function loadParents() {
 
-            const response = await api("/parents");
+            const parents = await api("/parents");
 
-            const parentSelect = document.getElementById("parentSelect");
+            const parentSelect =
+                document.getElementById("parentSelect");
 
             parentSelect.innerHTML = `
-                <option value="">Select Parent</option>
-            `;
+        <option value="">Select Parent</option>
+    `;
 
-            if (!response || !response.success) {
+            if (!Array.isArray(parents)) {
                 return;
             }
-
-            const parents = response.data || [];
 
             parents.forEach(function(parent) {
 
@@ -378,10 +379,10 @@
                 }
 
                 parentSelect.innerHTML += `
-                    <option value="${parent.id}">
-                        ${parentName}
-                    </option>
-                `;
+            <option value="${parent.id}">
+                ${parentName}
+            </option>
+        `;
             });
         }
 
