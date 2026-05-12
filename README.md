@@ -1,182 +1,150 @@
 # 🏫 SchoolFlow
 
-**SchoolFlow** is a modern school management system designed to help schools manage students, fees, academic performance, and parent communication in one simple platform.
+**SchoolFlow** is a modern multi-tenant school management SaaS platform designed to help schools manage students, fees, academic performance, attendance, and parent communication in one unified system.
 
 ---
 
 ## 🚀 Overview
 
-SchoolFlow is built as a **multi-school platform**, allowing multiple institutions to use the system independently while maintaining secure and isolated data.
+SchoolFlow is built as a **multi-school (SaaS) platform**, meaning each school has isolated data under a shared system.
 
-It is designed for:
+It supports:
 
-* Private schools
-* Tuition centers
-* Academies
+- Private schools
+- Academies
+- Tuition centers
 
 ---
 
 ## 🎯 Core Features (MVP)
 
-### 👨‍🏫 Admin & Staff
-
-* Manage students and classes
-* Track fees and balances
-* Record and manage exam results
-* View dashboard analytics
+### 👨‍🏫 Admin & Teachers
+- Manage students and classes
+- Record attendance
+- Manage exam results
+- Track school fees and payments
+- View analytics dashboard
 
 ### 👨‍👩‍👧 Parents
+- View student performance
+- Track attendance
+- Monitor fee payments
+- Receive updates and notifications
 
-* View student performance
-* Check fee balances
-* Receive notifications and updates
-
-### 🔐 Authentication System
-
-* Secure login (JWT-based)
-* Role-based access:
-
-  * Admin
-  * Teacher
-  * Parent
+### 🔐 Authentication & Security
+- JWT-based authentication
+- Role-based access control:
+  - Admin
+  - Teacher
+  - Parent
+- Multi-tenant (school_id isolation)
 
 ---
 
 ## 🧱 Tech Stack
 
 ### Backend
-
-* Node.js
-* Express.js
+- Node.js
+- Express.js
 
 ### Database
-
-* MySQL (relational, production-ready)
+- MySQL
 
 ### ORM
-
-* Sequelize
+- Sequelize
 
 ### Security
-
-* JWT Authentication
-* Password hashing (bcrypt)
+- JWT Authentication
+- bcrypt password hashing
+- Helmet security middleware
+- Rate limiting
 
 ---
 
 ## 📁 Project Structure
-
-```
 schoolflow/
 │
 ├── backend/
-│   ├── config/
-│   ├── models/
-│   ├── routes/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── utils/
-│   ├── app.js
-│   └── server.js
+│ ├── config/
+│ ├── controllers/
+│ ├── middleware/
+│ ├── models/
+│ ├── routes/
+│ ├── services/
+│ ├── app.js
+│ └── server.js
 │
 ├── frontend/
-│   ├── admin/
-│   ├── teacher/
-│   ├── parent/
-│   └── assets/
+│ ├── admin/
+│ ├── teacher/
+│ ├── parent/
+│ └── assets/
 │
 ├── .env
 ├── package.json
 └── README.md
-```
+
 
 ---
 
 ## ⚙️ Installation & Setup
 
-### 1. Clone project
-
-```
+### 1. Clone repository
+```bash
 git clone <your-repo-url>
 cd schoolflow/backend
-```
-
-### 2. Install dependencies
-
-```
+2. Install dependencies
 npm install
-```
+3. Setup environment variables
 
-### 3. Configure environment variables
+Create .env file:
 
-Create `.env` file:
-
-```
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=schoolflow
-JWT_SECRET=your_secret_key
-```
 
-### 4. Run server
+JWT_SECRET=your_secret_key
+JWT_REFRESH_SECRET=your_refresh_secret
+
+MPESA_CONSUMER_KEY=your_key
+MPESA_CONSUMER_SECRET=your_secret
+4. Run server
 
 Development:
 
-```
 npm run dev
-```
 
 Production:
 
-```
 npm start
-```
+🌐 API Base URL
+http://localhost:5000/api
+🧠 Architecture
 
----
+Frontend → Express API → Controllers → Sequelize Models → MySQL
 
-## 🌐 API Base URL
+Multi-tenant design ensures:
 
-```
-http://localhost:5000/
-```
+Each school is isolated via school_id
+Secure role-based access control
+💰 Business Model
+SaaS subscription per school
+Tiered plans:
+Basic
+Pro
+Enterprise
+Future: M-Pesa + Stripe integration
+🔮 Future Enhancements
+SMS & WhatsApp notifications
+Mobile app (Flutter / React Native)
+Automated report cards (PDF)
+AI analytics for performance tracking
+Online admissions system
+👨‍💻 Author
 
----
+Built as a production-ready SaaS school management system.
 
-## 🧠 System Architecture
+📄 License
 
-SchoolFlow follows an **API-first architecture**:
-
-Frontend → API → Controllers → Models → MySQL Database
-
----
-
-## 💰 Business Model
-
-SchoolFlow is designed as a subscription-based platform:
-
-* Monthly subscription per school
-* Tiered plans (Basic / Pro / Premium)
-* Future integration with payment systems (e.g., M-Pesa)
-
----
-
-## 🔮 Future Enhancements
-
-* SMS / WhatsApp notifications
-* Online fee payments
-* Report card generation (PDF)
-* Attendance tracking
-* Mobile app
-
----
-
-## 👨‍💻 Author
-
-Developed as a production-ready SaaS system.
-
----
-
-## 📄 License
-
-This project is proprietary and intended for commercial use.
+Proprietary — for commercial deployment use.
