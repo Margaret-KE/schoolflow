@@ -41,6 +41,7 @@ exports.markAttendance = async(req, res) => {
             },
             include: [{
                 model: db.Parent,
+                as: "parent",
                 include: [{ model: db.User }]
             }]
         });
@@ -112,6 +113,7 @@ exports.getAttendance = async(req, res) => {
                 attributes: ["id", "name", "student_class"],
                 include: [{
                     model: db.Parent,
+                    as: "parent",
                     include: [{
                         model: db.User,
                         attributes: ["name"]
@@ -257,8 +259,7 @@ exports.getAttendanceStats = async(req, res) => {
                 present: present,
                 absent: absent,
                 attendanceRate: total ?
-                    ((present / total) * 100).toFixed(2) :
-                    0
+                    ((present / total) * 100).toFixed(2) : 0
             }
         });
 

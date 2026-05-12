@@ -15,14 +15,12 @@ const permission = require("../middleware/permissionMiddleware");
 router.post(
     "/",
     auth,
-    permission("parents:create"),
     createParent
 );
 
 router.get(
     "/",
     auth,
-    permission("parents:view"),
     getParents
 );
 

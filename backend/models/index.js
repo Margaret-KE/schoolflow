@@ -1,7 +1,7 @@
 const sequelize = require("../config/db");
 
 // ===============================
-// IMPORT MODELS
+// IMPORT MODELS (ONLY ONCE)
 // ===============================
 const User = require("./User");
 const School = require("./School");
@@ -14,14 +14,7 @@ const Subscription = require("./Subscription");
 // ===============================
 // SAFETY CHECK
 // ===============================
-if (!User ||
-    !School ||
-    !Student ||
-    !Parent ||
-    !Attendance ||
-    !Payment ||
-    !Subscription
-) {
+if (!User || !School || !Student || !Parent || !Attendance || !Payment || !Subscription) {
     throw new Error("One or more models failed to load");
 }
 
@@ -34,7 +27,6 @@ School.hasMany(Attendance, { foreignKey: "school_id", onDelete: "CASCADE" });
 School.hasMany(Payment, { foreignKey: "school_id", onDelete: "CASCADE" });
 School.hasOne(Subscription, { foreignKey: "school_id", onDelete: "CASCADE" });
 
-// reverse safe binding
 User.belongsTo(School, { foreignKey: "school_id" });
 Student.belongsTo(School, { foreignKey: "school_id" });
 Attendance.belongsTo(School, { foreignKey: "school_id" });
@@ -44,18 +36,14 @@ Subscription.belongsTo(School, { foreignKey: "school_id" });
 // ===============================
 // PARENT RELATIONS
 // ===============================
-Parent.belongsTo(User, {
-    foreignKey: "user_id"
-});
+Parent.belongsTo(User, { foreignKey: "user_id" });
 
 User.hasOne(Parent, {
     foreignKey: "user_id",
     onDelete: "CASCADE"
 });
 
-Parent.belongsTo(School, {
-    foreignKey: "school_id"
-});
+Parent.belongsTo(School, { foreignKey: "school_id" });
 
 School.hasMany(Parent, {
     foreignKey: "school_id",
@@ -66,11 +54,13 @@ School.hasMany(Parent, {
 // STUDENT RELATIONS
 // ===============================
 Student.belongsTo(Parent, {
-    foreignKey: "parent_id"
+    foreignKey: "parent_id",
+    as: "parent"
 });
 
 Parent.hasMany(Student, {
     foreignKey: "parent_id",
+    as: "students",
     onDelete: "SET NULL"
 });
 
@@ -91,6 +81,7 @@ Student.hasMany(Payment, {
 Payment.belongsTo(Student, {
     foreignKey: "student_id"
 });
+
 // ===============================
 // EXPORT ALL
 // ===============================

@@ -2,10 +2,12 @@ const jwt = require("jsonwebtoken");
 const { User, School, Subscription } = require("../models");
 
 // ===============================
-// AUTH MIDDLEWARE (FINAL)
+// AUTH MIDDLEWARE
 // ===============================
 const authMiddleware = async(req, res, next) => {
+
     try {
+
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -18,6 +20,7 @@ const authMiddleware = async(req, res, next) => {
         const token = authHeader.split(" ")[1];
 
         let decoded;
+
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET);
         } catch (err) {
@@ -27,7 +30,6 @@ const authMiddleware = async(req, res, next) => {
             });
         }
 
-        // ✅ include school in same query (performance)
         const user = await User.findByPk(decoded.id);
 
         if (!user || !user.school_id) {
@@ -50,9 +52,6 @@ const authMiddleware = async(req, res, next) => {
             where: { school_id: school.id }
         });
 
-        // ===============================
-        // SUBSCRIPTION CHECK
-        // ===============================
         if (!subscription) {
             return res.status(403).json({
                 success: false,
@@ -67,10 +66,8 @@ const authMiddleware = async(req, res, next) => {
             });
         }
 
-        if (
-            subscription.end_date &&
-            new Date(subscription.end_date) < new Date()
-        ) {
+        if (subscription.end_date && new Date(subscription.end_date) < new Date()) {
+
             await subscription.update({ status: "expired" });
 
             return res.status(403).json({
@@ -80,7 +77,7 @@ const authMiddleware = async(req, res, next) => {
         }
 
         // ===============================
-        // CONTEXT
+        // ATTACH CONTEXT
         // ===============================
         req.user = {
             id: user.id,
@@ -94,8 +91,10 @@ const authMiddleware = async(req, res, next) => {
         next();
 
     } catch (error) {
+
         console.error("AUTH ERROR:", error);
-        return res.status(401).json({
+
+        return res.status(500).json({
             success: false,
             message: "Authentication failed"
         });

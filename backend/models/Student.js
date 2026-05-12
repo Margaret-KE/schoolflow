@@ -1,20 +1,12 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
-const Parent = sequelize.define("Parent", {
+const Student = sequelize.define("Student", {
 
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true
-    },
-
-    // ===============================
-    // LINKED USER ACCOUNT
-    // ===============================
-    user_id: {
-        type: DataTypes.UUID,
-        allowNull: false
     },
 
     // ===============================
@@ -26,26 +18,51 @@ const Parent = sequelize.define("Parent", {
     },
 
     // ===============================
-    // PARENT DETAILS
+    // STUDENT DETAILS
     // ===============================
-    phone: {
+    name: {
         type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    admission_no: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: false
+    },
+
+    student_class: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+
+    gender: {
+        type: DataTypes.ENUM("male", "female"),
         allowNull: true
     },
 
-    address: {
-        type: DataTypes.STRING,
+    date_of_birth: {
+        type: DataTypes.DATEONLY,
         allowNull: true
     },
 
-    occupation: {
-        type: DataTypes.STRING,
+    // ===============================
+    // PARENT RELATION
+    // ===============================
+    parent_id: {
+        type: DataTypes.UUID,
         allowNull: true
     }
 
 }, {
-    tableName: "parents",
-    timestamps: true
+    tableName: "students",
+    timestamps: true,
+
+    indexes: [
+        { fields: ["school_id"] },
+        { fields: ["parent_id"] },
+        { fields: ["admission_no"] }
+    ]
 });
 
-module.exports = Parent;
+module.exports = Student;
